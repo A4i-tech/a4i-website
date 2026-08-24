@@ -2,7 +2,7 @@ name: Deploy staging to Cloudflare Workers
 
 on:
   push:
-    branches: [a4i/staging, fix/assetsignore]
+    branches: [a4i/staging]
   workflow_dispatch:
 
 jobs:
