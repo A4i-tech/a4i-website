@@ -1,0 +1,28 @@
+name: Deploy staging to Cloudflare Workers
+
+on:
+  push:
+    branches: [a4i/staging]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard against files over Cloudflare Workers' 25MB per-file limit
+        run: |
+          big=$(find . -path ./.git -prune -o -type f -size +24M -print)
+          if [ -n "$big" ]; then
+            echo "::error::File(s) exceed Cloudflare's 25MB limit:"
+            echo "$big"
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
