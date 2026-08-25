@@ -256,20 +256,41 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
     display: none !important;
   }
 }
-/* "supported by" sits between the A4i logo and the Microsoft/IIITB logo.
-   It is its own flex item in the space-between header row, so the equal
-   symmetric margins keep it centred between the two logos at every width. */
+/* "supported by" is dropped into the gap that already exists between the
+   A4i logo and the Microsoft/IIITB logo. It is taken out of flow so the
+   header row keeps the exact widths and gaps it has today -- nothing in
+   the header moves or shrinks to make room for it.
+
+   That gap is (row - logos - nav) / 2. The row is 89.1% of the viewport
+   and the three blocks total 1195.5px, so the gap is 0.4455vw - 597.75px
+   and half its leftover, 22.275vw - 336px, centres the 74.2px label in
+   it at any width. max() keeps a floor if the row is ever narrower than
+   this arithmetic assumes. */
+header .supported-by-anchor {
+  position: relative;
+}
 header .supported-by-label {
-  margin: 0 14px;
+  position: absolute;
+  top: 50%;
+  right: calc(100% + max(6px, 22.275vw - 336px));
+  transform: translateY(-50%);
+  margin: 0;
   font-size: 12px;
   line-height: 1;
   font-weight: 400;
   white-space: nowrap;
   color: var(--white);
-  transition: 0.5s all linear;
+  transition: 0.5s color linear;
 }
 body.bg header .supported-by-label {
   color: var(--black);
+}
+/* Below ~1530px the gap is narrower than the text itself, so there is no
+   room to show it without moving the logos. */
+@media (max-width: 1529px) {
+  header .supported-by-label {
+    display: none;
+  }
 }
 /* The A4i logo is wrapped in an inline-block <a> sitting on a text baseline,
    so its line box added descender space below the logo and pushed it ~3px
@@ -392,16 +413,13 @@ header .logo-sec figure img {
 
 
 
-<p class="supported-by-label desktop-only-logo">supported by</p>
-
-
-
-<div class="wp-block-group logo-sec has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
+<div class="wp-block-group logo-sec supported-by-anchor has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
 <figure class="wp-block-image size-full is-resized white-logo desktop-only-logo"><img fetchpriority="high" decoding="async" width="1375" height="180" src="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png" alt="" class="wp-image-2697" style="aspect-ratio:7.218214285714286;object-fit:contain;object-position:50% 50%;width:310px" srcset="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png 1375w" sizes="(max-width: 1375px) 100vw, 1375px" /></figure>
 
 
 
 <figure class="wp-block-image size-full is-resized color-logo desktop-only-logo" style="margin-top:0;margin-bottom:0"><img decoding="async" width="1375" height="180" src="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-02.png" alt="" class="wp-image-2696" style="aspect-ratio:7.2180451127819545;object-fit:contain;object-position:50% 50%;width:310px" srcset="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-02.png 1375w" sizes="(max-width: 1375px) 100vw, 1375px" /></figure>
+<p class="supported-by-label desktop-only-logo">supported by</p>
 </div>
 
 
