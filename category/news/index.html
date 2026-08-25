@@ -229,18 +229,11 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
     display: none !important;
   }
 }
-/* "supported by" label between the A4i logo and the Microsoft/IIITB logo */
-header .supported-by-sec {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: 20px;
-}
-header .supported-by-sec > figure {
-  margin: 0;
-}
+/* "supported by" sits between the A4i logo and the Microsoft/IIITB logo.
+   It is its own flex item in the space-between header row, so the equal
+   symmetric margins keep it centred between the two logos at every width. */
 header .supported-by-label {
-  margin: 0;
+  margin: 0 14px;
   font-size: 12px;
   line-height: 1;
   font-weight: 400;
@@ -251,10 +244,13 @@ header .supported-by-label {
 body.bg header .supported-by-label {
   color: var(--black);
 }
-@media (max-width: 767px) {
-  header .supported-by-sec {
-    margin-left: 0;
-  }
+/* The A4i logo is wrapped in an inline-block <a> sitting on a text baseline,
+   so its line box added descender space below the logo and pushed it ~3px
+   above the optical centre of the Microsoft/IIITB logo (which has no <a>).
+   Making the link and image blocks removes that leading. */
+header .logo-sec figure a,
+header .logo-sec figure img {
+  display: block;
 }</style><script>document.addEventListener("DOMContentLoaded", function () {
   const viewAllLink = document.querySelector(".team .cta-sec a");
   if (!viewAllLink) return;
@@ -369,9 +365,11 @@ body.bg header .supported-by-label {
 
 
 
-<div class="wp-block-group logo-sec supported-by-sec has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
 <p class="supported-by-label desktop-only-logo">supported by</p>
 
+
+
+<div class="wp-block-group logo-sec has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
 <figure class="wp-block-image size-full is-resized white-logo desktop-only-logo"><img fetchpriority="high" decoding="async" width="1375" height="180" src="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png" alt="" class="wp-image-2697" style="aspect-ratio:7.218214285714286;object-fit:contain;object-position:50% 50%;width:310px" srcset="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png 1375w" sizes="(max-width: 1375px) 100vw, 1375px" /></figure>
 
 
