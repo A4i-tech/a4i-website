@@ -262,7 +262,7 @@ ol,ul{box-sizing:border-box}:root :where(.wp-block-list.has-background){padding:
 
    That gap is (row - logos - nav) / 2. The row is 89.1% of the viewport
    and the three blocks total 1195.5px, so the gap is 0.4455vw - 597.75px
-   and half its leftover, 22.275vw - 336px, centres the 74.2px label in
+   and half its leftover, 22.275vw - 329.7px, centres the 61.7px label in
    it at any width. max() keeps a floor if the row is ever narrower than
    this arithmetic assumes. */
 header .supported-by-anchor {
@@ -271,10 +271,10 @@ header .supported-by-anchor {
 header .supported-by-label {
   position: absolute;
   top: 50%;
-  right: calc(100% + max(6px, 22.275vw - 336px));
+  right: calc(100% + max(6px, 22.275vw - 329.7px));
   transform: translateY(-50%);
   margin: 0;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 400;
   white-space: nowrap;
@@ -284,9 +284,9 @@ header .supported-by-label {
 body.bg header .supported-by-label {
   color: var(--black);
 }
-/* Below ~1530px the gap is narrower than the text itself, so there is no
+/* Below ~1508px the gap is narrower than the text itself, so there is no
    room to show it without moving the logos. */
-@media (max-width: 1529px) {
+@media (max-width: 1507px) {
   header .supported-by-label {
     display: none;
   }
