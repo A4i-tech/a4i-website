@@ -228,6 +228,33 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
   .desktop-only-logo {
     display: none !important;
   }
+}
+/* "supported by" label between the A4i logo and the Microsoft/IIITB logo */
+header .supported-by-sec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 20px;
+}
+header .supported-by-sec > figure {
+  margin: 0;
+}
+header .supported-by-label {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 400;
+  white-space: nowrap;
+  color: var(--white);
+  transition: 0.5s all linear;
+}
+body.bg header .supported-by-label {
+  color: var(--black);
+}
+@media (max-width: 767px) {
+  header .supported-by-sec {
+    margin-left: 0;
+  }
 }</style><script>document.addEventListener("DOMContentLoaded", function () {
   const viewAllLink = document.querySelector(".team .cta-sec a");
   if (!viewAllLink) return;
@@ -342,7 +369,9 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
 
 
 
-<div class="wp-block-group logo-sec has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
+<div class="wp-block-group logo-sec supported-by-sec has-global-padding is-content-justification-left is-layout-constrained wp-container-core-group-is-layout-b1c96019 wp-block-group-is-layout-constrained" style="margin-top:0px;margin-bottom:0px;padding-right:0;padding-left:0">
+<p class="supported-by-label desktop-only-logo">supported by</p>
+
 <figure class="wp-block-image size-full is-resized white-logo desktop-only-logo"><img fetchpriority="high" decoding="async" width="1375" height="180" src="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png" alt="" class="wp-image-2697" style="aspect-ratio:7.218214285714286;object-fit:contain;object-position:50% 50%;width:310px" srcset="../../wp-content/uploads/2026/01/ms-iiitb-logo-header-01-1.png 1375w" sizes="(max-width: 1375px) 100vw, 1375px" /></figure>
 
 
