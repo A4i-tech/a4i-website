@@ -242,6 +242,74 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
   .desktop-only-logo {
     display: none !important;
   }
+}
+/* ---- "supported by" ------------------------------------------------------
+   Dropped into the gap that already exists between the A4i logo and the
+   Microsoft/IIIT-B logo. Absolutely positioned, so it is out of flow and the
+   header row keeps the widths and gaps it has today.
+
+   Two copies are rendered carrying the site's own .white-logo / .color-logo
+   classes, so the label follows the same light/dark switch as the logos --
+   on scroll (body.bg) and on the blog/event pages that pin the header dark.
+   There is no separate colour logic to keep in sync.
+
+   Position is derived from the three blocks in the header row. If any of them
+   changes, re-measure and update these four values -- nothing else needs to
+   change:
+     --sb-a4i    width of the A4i logo group
+     --sb-ms     width of the Microsoft/IIIT-B logo group
+     --sb-nav    width of the nav + CTA group
+     --sb-label  rendered width of the words "supported by"
+   The row is the containing block, so 100% is its true laid-out width: the
+   gap either side of the middle block is (100% - blocks)/2, and half the
+   leftover centres the label in it. clamp() keeps it inside that gap even if
+   the measurements drift, so it can never sit on top of either logo. */
+header .supported-by-row {
+  position: relative;
+  --sb-a4i: 172px;
+  --sb-ms: 310px;
+  --sb-nav: 713.5px;
+  --sb-label: 61.7px;
+  --sb-blocks: calc(var(--sb-a4i) + var(--sb-ms) + var(--sb-nav));
+  --sb-gap: calc((100% - var(--sb-blocks)) / 2);
+}
+header .supported-by-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: clamp(
+    calc(var(--sb-a4i) + 6px),
+    calc(var(--sb-a4i) + var(--sb-gap) / 2 - var(--sb-label) / 2),
+    calc(var(--sb-a4i) + var(--sb-gap) - var(--sb-label) - 6px)
+  );
+  margin: 0;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 400;
+  white-space: nowrap;
+}
+header .supported-by-label.white-logo {
+  color: var(--white);
+}
+header .supported-by-label.color-logo {
+  color: var(--black);
+}
+/* Below ~1508px the gap is narrower than the text itself -- 43px at 1440px,
+   and zero at 1280px where the logos already touch -- so there is no room to
+   show it without moving them. It fits while (100% - blocks)/2 >= label + 12px.
+   !important because the blog/event pages force .color-logo to display. */
+@media (max-width: 1507px) {
+  header .supported-by-label {
+    display: none !important;
+  }
+}
+/* The A4i logo is wrapped in an inline-block <a> sitting on a text baseline,
+   so its line box added descender space below the logo and pushed it ~3px
+   above the optical centre of the Microsoft/IIITB logo (which has no <a>).
+   Making the link and image blocks removes that leading. */
+header .logo-sec figure a,
+header .logo-sec figure img {
+  display: block;
 }</style><script>document.addEventListener("DOMContentLoaded", function () {
   const viewAllLink = document.querySelector(".team .cta-sec a");
   if (!viewAllLink) return;
@@ -345,7 +413,7 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
 <div class="wp-site-blocks"><header class="wp-block-template-part">
 <div class="wp-block-group alignfull is-layout-flow wp-block-group-is-layout-flow" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0">
 <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow" style="padding-top:13px;padding-right:5%;padding-bottom:13px;padding-left:5%">
-<div class="wp-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex wp-container-core-group-is-layout-6b2097d0 wp-block-group-is-layout-flex" style="padding-top:0;padding-bottom:0">
+<div class="wp-block-group supported-by-row alignwide is-content-justification-space-between is-nowrap is-layout-flex wp-container-core-group-is-layout-6b2097d0 wp-block-group-is-layout-flex" style="padding-top:0;padding-bottom:0">
 <div class="wp-block-group logo-sec is-layout-flow wp-block-group-is-layout-flow">
 <figure class="wp-block-image size-full white-logo"><a href="../../index.html"><img decoding="async" width="172" height="41" src="../../wp-content/uploads/2026/01/a4i-white-logo.png" alt="" class="wp-image-47"/></a></figure>
 
@@ -353,6 +421,11 @@ h1:where(.wp-block-heading).has-background,h2:where(.wp-block-heading).has-backg
 
 <figure class="wp-block-image size-full color-logo" style="margin-top:0;margin-bottom:0"><a href="../../index.html"><img decoding="async" width="172" height="41" src="../../wp-content/uploads/2026/01/a4i-colour-logo.png" alt="" class="wp-image-48"/></a></figure>
 </div>
+
+
+
+<p class="supported-by-label white-logo desktop-only-logo">supported by</p>
+<p class="supported-by-label color-logo desktop-only-logo">supported by</p>
 
 
 
