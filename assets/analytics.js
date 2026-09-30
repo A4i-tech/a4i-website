@@ -11,12 +11,9 @@
  * gtag() function. This file assumes both exist.
  *
  * Events emitted:
- *   cta_click { cta_label, cta_location, cta_destination, link_text }
- *
- * NOTE: the newsletter and contact forms still POST to WordPress PHP endpoints
- * that no longer exist, so no form_submit tracking is wired up here yet. Add it
- * once the forms are re-pointed at a working endpoint, otherwise every event
- * would represent a submission that silently failed.
+ *   cta_click   { cta_label, cta_location, cta_destination, link_text }
+ *   form_submit { form_type }  — only after assets/forms.js gets a confirmed
+ *                                success response from the forms Worker
  */
 (function () {
   'use strict';
@@ -91,4 +88,10 @@
     },
     true // capture, so it still fires if a handler stops propagation
   );
+
+  // Dispatched by assets/forms.js only when the Worker confirms the submission.
+  document.addEventListener('a4i:form-success', function (event) {
+    var detail = event.detail || {};
+    send('form_submit', { form_type: detail.form_type || 'unknown' });
+  });
 })();

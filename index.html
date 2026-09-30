@@ -22,6 +22,7 @@
   }
 </script>
 <script src="/assets/analytics.js" defer></script>
+<script src="/assets/forms.js" defer></script>
 
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -3059,7 +3060,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:45%"><div class="form-wrapper">
-  <form id="contactForm" action="https://a4i.iiitb.ac.in/wp-content/themes/a4i/contact-submit.php" method="POST">
+  <form id="contactForm" data-a4i-form="contact" method="POST">
 
     <!-- Full Name -->
     <div class="form-group wow wd wd_0.3s fadeInUp">
@@ -3122,11 +3123,11 @@ document.addEventListener("DOMContentLoaded", function () {
   </form>
 </div>
 
-<script src="../www.google.com/recaptcha/apic9cd.js?render=6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q"></script>
 
 <script>
 grecaptcha.ready(function () {
-  grecaptcha.execute('6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW', { action: 'contact' }).then(function (token) {
+  grecaptcha.execute('6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q', { action: 'contact' }).then(function (token) {
     document.getElementById('contact_token').value = token;
   });
 });
@@ -3179,7 +3180,7 @@ grecaptcha.ready(function () {
 
 
 <div class="newsletter wow wd wd_0.5s fadeInUp">
-    <form method="POST" action="https://a4i.iiitb.ac.in/wp-content/themes/a4i/newsletter-submit.php">
+    <form method="POST" data-a4i-form="newsletter">
         <div class="form-group">
             <input type="email" name="email" required placeholder="Your email id">
         </div>
@@ -3198,11 +3199,11 @@ grecaptcha.ready(function () {
     </form>
 </div>
 
-<script src="../www.google.com/recaptcha/apic9cd.js?render=6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q"></script>
 <script>
 
 grecaptcha.ready(function () {
-  grecaptcha.execute('6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW', { action: 'newsletter' }).then(function (token) {
+  grecaptcha.execute('6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q', { action: 'newsletter' }).then(function (token) {
     document.getElementById('newsletter_token').value = token;
   });
 });

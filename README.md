@@ -6,7 +6,7 @@ Migrated off shared cPanel hosting after repeated bot attacks — see [#528](htt
 
 ## Known gaps (static export has no PHP/DB backend)
 
-- Contact form and newsletter signup are dead — need a static-form service (Formspree/Getform) swapped in, or accepted as broken
+- Contact form and newsletter signup are handled by a Cloudflare Worker — see [`workers/forms`](workers/forms/README.md)
 - Comments and search don't work — needed a live DB
 - No wp-admin — content updates require: edit in a local WordPress instance → re-export → commit → push
 
