@@ -36,6 +36,20 @@ export default {
     }
     const type = route.slice(1);
 
+    // Rate limit before doing any real work (body parsing, reCAPTCHA call, D1
+    // write, outbound email). Limits are per client IP and route.
+    if (env.RATE_LIMITER) {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const { success } = await env.RATE_LIMITER.limit({ key: `${type}:${ip}` });
+      if (!success) {
+        return json(
+          { ok: false, error: 'Too many requests. Please wait a minute and try again.' },
+          429,
+          { ...cors, 'Retry-After': '60' }
+        );
+      }
+    }
+
     let body;
     try {
       body = await readBody(request);
@@ -54,18 +68,21 @@ export default {
       return json({ ok: false, error: 'Please check the highlighted fields.', fields: errors }, 422, cors);
     }
 
-    if (env.RECAPTCHA_SECRET) {
-      const ok = await verifyRecaptcha(env.RECAPTCHA_SECRET, clean(body.recaptcha_token), type, request);
-      if (!ok) {
-        return json({ ok: false, error: 'Spam check failed. Please refresh the page and try again.' }, 400, cors);
-      }
+    // reCAPTCHA is mandatory. If the secret was never set, fail closed rather
+    // than silently accepting unverified submissions.
+    if (!env.RECAPTCHA_SECRET) {
+      console.error('RECAPTCHA_SECRET is not configured; rejecting submission');
+      return json({ ok: false, error: 'This form is temporarily unavailable. Please email us at a4i@iiitb.ac.in.' }, 503, cors);
+    }
+    const human = await verifyRecaptcha(env.RECAPTCHA_SECRET, clean(body.recaptcha_token), type, request);
+    if (!human) {
+      return json({ ok: false, error: 'Spam check failed. Please refresh the page and try again.' }, 400, cors);
     }
 
     // Store first: D1 is the durable record, email is best-effort notification.
     let stored = false;
-    let duplicate = false;
     try {
-      const res = await env.DB.prepare(
+      await env.DB.prepare(
         `INSERT OR IGNORE INTO submissions
            (type, fullname, city, organisation, email, message, user_agent, page)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -81,9 +98,9 @@ export default {
           (request.headers.get('Referer') || '').slice(0, 300)
         )
         .run();
+      // Newsletter has a unique index on email, so a repeat signup is a silent
+      // no-op. The response is identical either way so nobody can probe the list.
       stored = true;
-      // Newsletter has a unique index on email; a repeat signup is a no-op.
-      duplicate = type === 'newsletter' && res.meta && res.meta.changes === 0;
     } catch (e) {
       console.error('D1 insert failed', e);
     }
@@ -103,7 +120,7 @@ export default {
       return json({ ok: false, error: 'Something went wrong on our side. Please try again later.' }, 502, cors);
     }
 
-    return json({ ok: true, duplicate }, 200, cors);
+    return json({ ok: true }, 200, cors);
   }
 };
 
