@@ -13,6 +13,7 @@ cd workers/forms
 npx wrangler login
 npx wrangler d1 create a4i-forms          # copy database_id into wrangler.toml
 npx wrangler d1 execute a4i-forms --remote --file=schema.sql
+npx wrangler secret put RESEND_API_KEY    # contact email delivery (see Email)
 npx wrangler secret put RECAPTCHA_SECRET  # REQUIRED: reCAPTCHA v3 secret key (see below)
 npx wrangler deploy
 ```
@@ -22,13 +23,17 @@ site origins (e.g. the staging URL) to `ALLOWED_ORIGINS` in `wrangler.toml`.
 
 ### Email
 
-Contact emails are sent with the Cloudflare Email Service `EMAIL` binding. Onboard the sending domain
-once in the dashboard (**Compute > Email Service > Email Sending**, domain `a4i-lab.in`); Cloudflare adds
-the MX/SPF/DKIM/DMARC records itself. `MAIL_FROM` must be an address on that domain.
+Contact emails go to `CONTACT_TO` (`a4i@iiitb.ac.in`) through [Resend](https://resend.com) (free tier:
+3,000 emails/month, 100/day). Cloudflare's own Email Sending was ruled out because it needs the paid Workers plan.
 
-Until the domain is onboarded the submission is still saved in D1 and the user sees success; the Worker
-logs the send error (e.g. `E_SENDER_NOT_VERIFIED`) and `Contact stored but inbox email was not sent`.
-View logs with `npx wrangler tail`.
+1. Create a Resend account and add `a4i-lab.in` under **Domains**. Resend can add the DNS records to the
+   Cloudflare zone automatically; wait until the domain shows **Verified**.
+2. Create an API key (sending access, limited to that domain) and store it:
+   `npx wrangler secret put RESEND_API_KEY`
+3. `MAIL_FROM` in `wrangler.toml` must be an address on the verified domain.
+
+Until this is done the submission is still saved in D1 and the user sees success; the Worker logs
+`Resend responded ...` / `Contact stored but inbox email was not sent`. View logs with `npx wrangler tail`.
 
 ### Bot protection (required)
 

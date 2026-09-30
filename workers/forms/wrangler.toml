@@ -7,13 +7,8 @@ compatibility_date = "2026-08-24"
 # workers.dev URL here if you want to test the forms there.
 ALLOWED_ORIGINS = "https://a4i.iiitb.ac.in,https://www.a4i.iiitb.ac.in,https://a4i-staging.dev-a4i.workers.dev"
 CONTACT_TO = "a4i@iiitb.ac.in"
-# Plain address on a domain onboarded under Email Service > Email Sending.
-MAIL_FROM = "noreply@a4i-lab.in"
-
-# Cloudflare Email Service binding used to send the contact email.
-[[send_email]]
-name = "EMAIL"
-remote = true
+# Must be an address on a domain verified in Resend (https://resend.com/domains).
+MAIL_FROM = "A4I Website <noreply@a4i-lab.in>"
 
 # Per-IP rate limit, applied separately to /contact and /newsletter in src/index.js
 # (5 requests per 60s). Counters are per Cloudflare location and eventually
@@ -33,5 +28,6 @@ database_name = "a4i-forms"
 database_id = "cb81906d-1ac3-47b1-99af-074324d0f50d"
 
 # Secrets (set with `wrangler secret put <NAME>`, never commit):
+#   RESEND_API_KEY   - API key for sending the contact email (Resend)
 #   RECAPTCHA_SECRET - REQUIRED; server-side reCAPTCHA v3 verification. Without it
 #                      the Worker rejects every submission (503).
