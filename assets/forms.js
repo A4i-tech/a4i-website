@@ -11,7 +11,7 @@
 
   // URL of the deployed forms Worker (see workers/forms/README.md).
   var ENDPOINT = 'https://a4i-forms.dev-a4i.workers.dev';
-  var RECAPTCHA_SITE_KEY = '6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW';
+  var RECAPTCHA_SITE_KEY = '6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q';
 
   var MESSAGES = {
     contact: 'Thank you! Your message has been sent. We will get back to you soon.',
