@@ -199,7 +199,7 @@ function esc(s) {
 }
 
 async function sendContactEmail(env, d) {
-  if (!env.RESEND_API_KEY || !env.MAIL_FROM || !env.CONTACT_TO) return false;
+  if (!env.EMAIL || !env.MAIL_FROM || !env.CONTACT_TO) return false;
   // Strip CR/LF so user input can never inject extra headers into the subject.
   const subject = `A4I website contact: ${d.fullname}`.replace(/[\r\n]+/g, ' ').slice(0, 200);
   const rows = [
@@ -215,21 +215,15 @@ async function sendContactEmail(env, d) {
     '</table>';
   const text = rows.map(([k, v]) => `${k}: ${v}`).join('\n');
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: env.MAIL_FROM,
-      to: env.CONTACT_TO.split(',').map((s) => s.trim()),
-      reply_to: d.email,
-      subject,
-      html,
-      text
-    })
+  // Cloudflare Email Service binding. Throws (with .code) on failure, e.g.
+  // E_SENDER_NOT_VERIFIED if the sender domain is not onboarded.
+  await env.EMAIL.send({
+    from: { email: env.MAIL_FROM, name: 'A4I Website' },
+    to: env.CONTACT_TO.split(',').map((s) => s.trim()),
+    replyTo: d.email,
+    subject,
+    html,
+    text
   });
-  if (!res.ok) {
-    console.error('Resend responded', res.status, await res.text());
-    return false;
-  }
   return true;
 }

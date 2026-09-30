@@ -13,7 +13,6 @@ cd workers/forms
 npx wrangler login
 npx wrangler d1 create a4i-forms          # copy database_id into wrangler.toml
 npx wrangler d1 execute a4i-forms --remote --file=schema.sql
-npx wrangler secret put RESEND_API_KEY    # contact email delivery
 npx wrangler secret put RECAPTCHA_SECRET  # optional: server-side reCAPTCHA check
 npx wrangler deploy
 ```
@@ -23,9 +22,13 @@ site origins (e.g. the staging URL) to `ALLOWED_ORIGINS` in `wrangler.toml`.
 
 ### Email
 
-Contact emails are sent through [Resend](https://resend.com). `MAIL_FROM` must be on a domain verified
-there, which needs DNS records (SPF/DKIM) on `a4i.iiitb.ac.in` — ask IIITB IT. Until that is done the
-submission is still saved in D1 and the user sees success; the Worker logs `Contact stored but inbox email was not sent`.
+Contact emails are sent with the Cloudflare Email Service `EMAIL` binding. Onboard the sending domain
+once in the dashboard (**Compute > Email Service > Email Sending**, domain `a4i-lab.in`); Cloudflare adds
+the MX/SPF/DKIM/DMARC records itself. `MAIL_FROM` must be an address on that domain.
+
+Until the domain is onboarded the submission is still saved in D1 and the user sees success; the Worker
+logs the send error (e.g. `E_SENDER_NOT_VERIFIED`) and `Contact stored but inbox email was not sent`.
+View logs with `npx wrangler tail`.
 
 ### Reading submissions
 
