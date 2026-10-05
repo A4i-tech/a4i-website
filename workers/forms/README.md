@@ -13,7 +13,7 @@ cd workers/forms
 npx wrangler login
 npx wrangler d1 create a4i-forms          # copy database_id into wrangler.toml
 npx wrangler d1 execute a4i-forms --remote --file=schema.sql
-npx wrangler secret put RESEND_API_KEY    # contact email delivery (see Email)
+npx wrangler secret put MAILTRAP_API_KEY  # contact email delivery (see Email)
 npx wrangler secret put RECAPTCHA_SECRET  # REQUIRED: reCAPTCHA v3 secret key (see below)
 npx wrangler deploy
 ```
@@ -23,17 +23,19 @@ site origins (e.g. the staging URL) to `ALLOWED_ORIGINS` in `wrangler.toml`.
 
 ### Email
 
-Contact emails go to `CONTACT_TO` (`a4i@iiitb.ac.in`) through [Resend](https://resend.com) (free tier:
-3,000 emails/month, 100/day). Cloudflare's own Email Sending was ruled out because it needs the paid Workers plan.
+Contact emails go to `CONTACT_TO` (`a4i@iiitb.ac.in`) through the org's existing Mailtrap account, using its
+**HTTP Sending API** (`https://send.api.mailtrap.io/api/send`). Workers can't run Node SMTP clients, so the
+SMTP host/port is not used. Cloudflare Email Sending (needs the paid Workers plan) and Resend were ruled out.
+Sending limits depend on the Mailtrap plan; check the account's Email Sending quota.
 
-1. Create a Resend account and add `a4i-lab.in` under **Domains**. Resend can add the DNS records to the
-   Cloudflare zone automatically; wait until the domain shows **Verified**.
-2. Create an API key (sending access, limited to that domain) and store it:
-   `npx wrangler secret put RESEND_API_KEY`
+1. In Mailtrap, use an **Email Sending** setup (not Email Testing/Sandbox; `sandbox.smtp.mailtrap.io` mail never
+   reaches a real inbox). Add `a4i-lab.in` under **Sending Domains** and wait until it is verified.
+2. Create an API token for that domain and store it:
+   `npx wrangler secret put MAILTRAP_API_KEY`
 3. `MAIL_FROM` in `wrangler.toml` must be an address on the verified domain.
 
 Until this is done the submission is still saved in D1 and the user sees success; the Worker logs
-`Resend responded ...` / `Contact stored but inbox email was not sent`. View logs with `npx wrangler tail`.
+`Mailtrap responded ...` / `Contact stored but inbox email was not sent`. View logs with `npx wrangler tail`.
 
 ### Bot protection (required)
 
