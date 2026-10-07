@@ -47,21 +47,73 @@
     form.appendChild(wrap);
   }
 
+  // The reCAPTCHA v3 loader is injected here, once, instead of on every page. It
+  // is requested the first time someone touches a form (or submits), so pages
+  // that nobody interacts with make no reCAPTCHA calls at all.
+  var recaptchaLoading = null;
+  function loadRecaptcha() {
+    if (window.grecaptcha && grecaptcha.execute) return Promise.resolve();
+    if (!recaptchaLoading) {
+      recaptchaLoading = new Promise(function (resolve) {
+        var s = document.createElement('script');
+        s.src = 'https://www.google.com/recaptcha/api.js?render=' + RECAPTCHA_SITE_KEY;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = resolve; // token stays empty; the Worker rejects and the user sees an error
+        document.head.appendChild(s);
+      });
+    }
+    return recaptchaLoading;
+  }
+
   // Tokens expire after ~2 minutes, so fetch a fresh one at submit time.
   function recaptchaToken(action) {
-    return new Promise(function (resolve) {
-      if (!window.grecaptcha || !grecaptcha.ready) return resolve('');
-      var done = false;
-      var timer = setTimeout(function () {
-        if (!done) { done = true; resolve(''); }
-      }, 5000);
-      grecaptcha.ready(function () {
-        grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: action }).then(
-          function (t) { if (!done) { done = true; clearTimeout(timer); resolve(t); } },
-          function () { if (!done) { done = true; clearTimeout(timer); resolve(''); } }
-        );
+    return loadRecaptcha().then(function () {
+      return new Promise(function (resolve) {
+        if (!window.grecaptcha || !grecaptcha.ready) return resolve('');
+        var done = false;
+        var timer = setTimeout(function () {
+          if (!done) { done = true; resolve(''); }
+        }, 5000);
+        grecaptcha.ready(function () {
+          grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: action }).then(
+            function (t) { if (!done) { done = true; clearTimeout(timer); resolve(t); } },
+            function () { if (!done) { done = true; clearTimeout(timer); resolve(''); } }
+          );
+        });
       });
     });
+  }
+
+  var FIELD_LABELS = { fullname: 'Name', city: 'City', organisation: 'Organisation', email: 'Email', message: 'Message' };
+
+  function errorSlot(form, name) {
+    var input = form.querySelector('[name="' + name + '"]');
+    var group = input && input.closest ? input.closest('.form-group') : null;
+    return group ? group.querySelector('.error') : null;
+  }
+
+  function clearFieldErrors(form) {
+    Array.prototype.forEach.call(form.querySelectorAll('.error'), function (el) { el.textContent = ''; });
+    Array.prototype.forEach.call(form.querySelectorAll('[aria-invalid]'), function (el) { el.removeAttribute('aria-invalid'); });
+  }
+
+  // Server-side validation can be stricter than the browser's (length limits,
+  // stricter email check), so surface its per-field messages. Fields that share
+  // an .error slot (city + organisation) get their messages joined.
+  function showFieldErrors(form, fields) {
+    var names = Object.keys(fields || {});
+    var slots = [];
+    names.forEach(function (name) {
+      var input = form.querySelector('[name="' + name + '"]');
+      if (input) input.setAttribute('aria-invalid', 'true');
+      var slot = errorSlot(form, name);
+      if (!slot) return;
+      var text = (FIELD_LABELS[name] || name) + ': ' + fields[name];
+      var i = slots.indexOf(slot);
+      if (i === -1) { slots.push(slot); slot.textContent = text; } else { slot.textContent += ' · ' + text; }
+    });
+    return names.map(function (name) { return (FIELD_LABELS[name] || name) + ': ' + fields[name]; }).join(' · ');
   }
 
   function collect(form) {
@@ -75,6 +127,7 @@
   function submit(form, type) {
     var button = form.querySelector('button[type="submit"]');
     if (button) button.disabled = true;
+    clearFieldErrors(form);
     show(form, 'Sending…', true);
 
     return recaptchaToken(type)
@@ -98,6 +151,9 @@
           form.reset();
           show(form, MESSAGES[type], true);
           form.dispatchEvent(new CustomEvent('a4i:form-success', { bubbles: true, detail: { form_type: type } }));
+        } else if (r.res.status === 422 && r.body && r.body.fields) {
+          // Also shown in the status line, since not every form has per-field slots.
+          show(form, showFieldErrors(form, r.body.fields), false);
         } else {
           show(form, (r.body && r.body.error) || MESSAGES.error, false);
         }
@@ -116,6 +172,8 @@
       var type = form.getAttribute('data-a4i-form');
       if (type !== 'contact' && type !== 'newsletter') return;
       ensureHoneypot(form);
+      // Warm up reCAPTCHA as soon as the visitor starts using the form.
+      form.addEventListener('focusin', loadRecaptcha, { once: true });
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         if (form.checkValidity && !form.checkValidity()) {

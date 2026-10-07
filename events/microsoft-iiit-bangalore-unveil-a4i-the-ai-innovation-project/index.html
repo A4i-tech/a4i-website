@@ -979,8 +979,6 @@ document.addEventListener("DOMContentLoaded", function () {
             <input type="email" name="email" required placeholder="Your email id">
         </div>
 
-       <input type="hidden" name="form_type" value="newsletter">
-  <input type="hidden" name="recaptcha_token" id="newsletter_token">
 
         <div class="submit">
             <button type="submit" name="newsletter_submit">
@@ -993,17 +991,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </form>
 </div>
 
-<script src="https://www.google.com/recaptcha/api.js?render=6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q"></script>
-<script>
-
-grecaptcha.ready(function () {
-  grecaptcha.execute('6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q', { action: 'newsletter' }).then(function (token) {
-    document.getElementById('newsletter_token').value = token;
-  });
-});
-
-
-</script>
 
 
 <style>

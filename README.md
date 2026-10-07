@@ -13,7 +13,8 @@ Migrated off shared cPanel hosting after repeated bot attacks — see [#528](htt
 ## Structure
 
 - Site content at repo root (`index.html`, page directories)
-- `use.typekit.net/`, `p.typekit.net/`, `www.google.com/` — mirrored third-party assets (fonts, reCAPTCHA)
+- `use.typekit.net/`, `p.typekit.net/` — mirrored third-party assets (fonts). reCAPTCHA is not mirrored: `assets/forms.js` loads Google's own `api.js` the first time a form is used
+- `assets/forms.js`, `workers/forms/` — contact/newsletter submission and the Cloudflare Worker behind it
 - `CNAME` — custom domain (`a4i.iiitb.ac.in`)
 - `.nojekyll` — disables GitHub's Jekyll processing
 - `sitemap.xml`, `robots.txt` — hand-generated, WP's dynamic versions don't exist in a static export

@@ -65,7 +65,7 @@ export default {
 
     const { data, errors } = type === 'contact' ? validateContact(body) : validateNewsletter(body);
     if (errors) {
-      return json({ ok: false, error: 'Please check the highlighted fields.', fields: errors }, 422, cors);
+      return json({ ok: false, error: 'Please check the form and try again.', fields: errors }, 422, cors);
     }
 
     // reCAPTCHA is mandatory. If the secret was never set, fail closed rather
@@ -151,7 +151,12 @@ function json(payload, status, extra) {
 
 async function readBody(request) {
   const type = request.headers.get('Content-Type') || '';
-  if (type.includes('application/json')) return await request.json();
+  if (type.includes('application/json')) {
+    const b = await request.json();
+    // A body of literally `null` (or a string/number/array) is valid JSON but not a form.
+    if (!b || typeof b !== 'object' || Array.isArray(b)) throw new Error('Invalid body');
+    return b;
+  }
   const form = await request.formData();
   const out = {};
   for (const [k, v] of form.entries()) if (typeof v === 'string') out[k] = v;
@@ -201,9 +206,9 @@ async function verifyRecaptcha(secret, token, action, request) {
     const res = await fetch('https://www.google.com/recaptcha/api/siteverify', { method: 'POST', body: params });
     const r = await res.json();
     if (!r.success) return false;
-    // v3 returns score/action; tolerate v2 (no score).
-    if (typeof r.score === 'number' && r.score < MIN_RECAPTCHA_SCORE) return false;
-    if (r.action && r.action !== action) return false;
+    // The key is v3 only: a response without a score or action is not one we issued.
+    if (typeof r.score !== 'number' || r.score < MIN_RECAPTCHA_SCORE) return false;
+    if (r.action !== action) return false;
     return true;
   } catch (e) {
     console.error('reCAPTCHA verify failed', e);
