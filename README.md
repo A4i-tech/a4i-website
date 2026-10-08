@@ -17,3 +17,14 @@ Migrated off shared cPanel hosting after repeated bot attacks — see [#528](htt
 - `CNAME` — custom domain (`a4i.iiitb.ac.in`)
 - `.nojekyll` — disables GitHub's Jekyll processing
 - `sitemap.xml`, `robots.txt` — hand-generated, WP's dynamic versions don't exist in a static export
+
+## SEO hygiene after a re-export
+
+The HTTrack/WordPress export reintroduces things Google Search Console flags as soft 404s and duplicates (see [.github#584](https://github.com/A4i-tech/.github/issues/584)). After every re-export:
+
+- Delete `feed/`, `comments/`, `sample-page/`, `category/*/feed/`, `tag/*/feed/`, `wp-json/` and the `index????.html` redirect stubs — they are RSS/JSON or `?p=` shortlink artifacts served as HTML
+- Strip the WP head links that point at them (RSS/oEmbed/JSON `alternate`, `https://api.w.org/`, `EditURI`, `shortlink`)
+- Canonicals must be absolute directory URLs (`https://a4i.iiitb.ac.in/about-us/`), never the exported `href="index.html"`
+- Internal links use directory URLs (`../about-us/`), not `../about-us/index.html`
+- `tag/*` and `category/*` archives are empty on this site — keep them `noindex, follow` and out of `sitemap.xml`
+- Moved pages (`news/`, `careers/ai-architect/`) are redirect stubs with an absolute canonical and `noindex` — don't list them in `sitemap.xml`
