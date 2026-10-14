@@ -1,0 +1,8 @@
+title = "gitleaks config"
+
+[allowlist]
+description = "Known false positive: reCAPTCHA site key, public/client-side by design, not a secret"
+commits = [
+  "377d7a200b36ea550d11aed2437cdc6f1152770e",
+  "f0a1d5df4cfc3637b12893b2529a3ad8fdff1600",
+]
