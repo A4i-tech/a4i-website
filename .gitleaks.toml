@@ -1,19 +1,33 @@
 title = "a4i-website gitleaks config"
 
-# Keep every built-in rule; the allowlist below only adds exceptions.
+# Keep every built-in rule; the allowlist below only adds an exception.
 [extend]
 useDefault = true
 
-[allowlist]
-description = "Public reCAPTCHA v3 site keys (not secrets)"
+# Public reCAPTCHA v3 site keys (not secrets).
+#
 # A reCAPTCHA *site* key is public by design: the browser needs it to request a
 # token, so it sits in assets/forms.js (and used to sit in every page). Only the
 # matching *secret* key is private, and that one lives only in the Worker
 # (RECAPTCHA_SECRET), never in this repository.
 #
-# Entries are the exact key values so nothing else can hide behind them. If the
-# site key is rotated, add the new value here in the same PR that changes it.
+# The exception is deliberately narrow. condition = "AND" means a finding is
+# ignored only when it is inside one of these two historical commits AND the
+# matched value is exactly one of these two keys; anything else in those commits,
+# and these keys anywhere else, is still reported.
+#   f0a1d5d  Replace dead PHP form endpoints with Cloudflare Worker (old key)
+#   377d7a2  Use new reCAPTCHA v3 site key for A4I website forms (new key)
+#
+# A new public key needs its own entry (commit + exact value) in the same PR
+# that introduces it; see A4i-tech/.github#614.
+[[allowlists]]
+description = "Public reCAPTCHA v3 site keys in assets/forms.js (A4i-tech/.github#614)"
+condition = "AND"
+commits = [
+  "f0a1d5df4cfc3637b12893b2529a3ad8fdff1600",
+  "377d7a200b36ea550d11aed2437cdc6f1152770e",
+]
 regexes = [
-  '''6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q''',
   '''6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW''',
+  '''6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q''',
 ]
