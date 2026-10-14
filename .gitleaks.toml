@@ -1,0 +1,19 @@
+title = "a4i-website gitleaks config"
+
+# Keep every built-in rule; the allowlist below only adds exceptions.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public reCAPTCHA v3 site keys (not secrets)"
+# A reCAPTCHA *site* key is public by design: the browser needs it to request a
+# token, so it sits in assets/forms.js (and used to sit in every page). Only the
+# matching *secret* key is private, and that one lives only in the Worker
+# (RECAPTCHA_SECRET), never in this repository.
+#
+# Entries are the exact key values so nothing else can hide behind them. If the
+# site key is rotated, add the new value here in the same PR that changes it.
+regexes = [
+  '''6LcTMtgtAAAAAG9J3XIr9a3BuqPtsj1dn-vfl45Q''',
+  '''6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW''',
+]
