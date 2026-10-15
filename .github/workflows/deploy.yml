@@ -32,6 +32,11 @@ jobs:
             exit 1
           fi
 
+      # GitHub Pages ignores .assetsignore, so drop the Worker source here to
+      # keep it out of the published site (it deploys separately via wrangler).
+      - name: Exclude Worker source from the Pages artifact
+        run: rm -rf workers
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

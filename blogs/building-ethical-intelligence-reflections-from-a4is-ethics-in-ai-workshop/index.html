@@ -22,6 +22,7 @@
   }
 </script>
 <script src="/assets/analytics.js" defer></script>
+<script src="/assets/forms.js" defer></script>
 
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1414,13 +1415,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <div class="newsletter wow wd wd_0.5s fadeInUp">
-    <form method="POST" action="https://a4i.iiitb.ac.in/wp-content/themes/a4i/newsletter-submit.php">
+    <form method="POST" data-a4i-form="newsletter">
         <div class="form-group">
             <input type="email" name="email" required placeholder="Your email id">
         </div>
 
-       <input type="hidden" name="form_type" value="newsletter">
-  <input type="hidden" name="recaptcha_token" id="newsletter_token">
 
         <div class="submit">
             <button type="submit" name="newsletter_submit">
@@ -1433,17 +1432,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </form>
 </div>
 
-<script src="../../../www.google.com/recaptcha/apic9cd.js?render=6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW"></script>
-<script>
-
-grecaptcha.ready(function () {
-  grecaptcha.execute('6LfplXksAAAAANqCVDdWFza19fwe4wm34fQYU4CW', { action: 'newsletter' }).then(function (token) {
-    document.getElementById('newsletter_token').value = token;
-  });
-});
-
-
-</script>
 
 
 <style>
