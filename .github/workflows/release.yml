@@ -126,6 +126,7 @@ jobs:
             echo "Sync branch $branch exists with no PR (prior run failed before opening one), rebuilding it." >&2
             force="--force"
           fi
+          gh label create needs-resolution --color d93f0b --description "Back-sync needs manual conflict resolution" >/dev/null 2>&1 || true
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO_FULL}.git"
           git checkout -b "$branch" origin/a4i/staging
           if git merge origin/a4i/main --no-edit; then

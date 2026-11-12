@@ -68,6 +68,7 @@ jobs:
           else
             body="## Release $version"$'\n\n'"$(printf '%s\n' "$issues" | sed 's/^/- /')"
           fi
+          gh label create release --color 0e8a16 --description "Release promotion PR" >/dev/null 2>&1 || true
           created=false
           if [ -z "$number" ]; then
             created=true
