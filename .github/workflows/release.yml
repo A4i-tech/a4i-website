@@ -82,6 +82,25 @@ jobs:
             notes="## $TAG"$'\n\n'"$(printf '%s\n' "$issues" | sed 's/^/- /')"
           fi
           gh release create "$TAG" --target "$SHA" --notes "$notes"
+      - name: Alert Teams on failure
+        if: failure()
+        env:
+          WEBHOOK_URL: ${{ secrets.RELEASE_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          jq -nc --arg text "Release tag and notes job failed on a4i-website: $RUN_URL" '{
+            type: "message",
+            attachments: [{
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.5",
+                msteams: {width: "Full"},
+                body: [{type: "TextBlock", text: $text, wrap: true}]
+              }
+            }]
+          }' | curl --fail-with-body -sS -X POST -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
 
   back-sync:
     needs: tag-and-release
@@ -143,3 +162,22 @@ jobs:
               --label needs-resolution \
               --body "This branch is origin/a4i/main as-is, a plain merge into staging conflicted. Pull this branch, run \`git merge origin/a4i/staging\`, resolve, push, then merge via Create a merge commit. Do not force-push staging or main."
           fi
+      - name: Alert Teams on failure
+        if: failure()
+        env:
+          WEBHOOK_URL: ${{ secrets.RELEASE_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          jq -nc --arg text "Release back-sync job failed on a4i-website: $RUN_URL" '{
+            type: "message",
+            attachments: [{
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.5",
+                msteams: {width: "Full"},
+                body: [{type: "TextBlock", text: $text, wrap: true}]
+              }
+            }]
+          }' | curl --fail-with-body -sS -X POST -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"

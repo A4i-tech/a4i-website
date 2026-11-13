@@ -2,7 +2,7 @@ name: Ancestry Watch
 
 on:
   push:
-    branches: [a4i/main, a4i/staging]
+    branches: [a4i/main]
   schedule:
     - cron: "0 * * * *"
 

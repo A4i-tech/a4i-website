@@ -4,7 +4,7 @@ on:
   push:
     branches: [a4i/staging]
   schedule:
-    - cron: "30 11 * * 4"
+    - cron: "30 11 * * 4" # 17:00 IST
   workflow_dispatch:
 
 permissions:
@@ -83,7 +83,6 @@ jobs:
             echo "Could not determine promotion PR number." >&2
             exit 1
           fi
-          gh pr merge "$number" --auto --merge
           if [ "$created" = true ]; then
             pr_url=$(gh pr view "$number" --json url --jq .url)
             jq -nc --arg text "Release PR ready for review: $pr_url" '{
@@ -100,3 +99,23 @@ jobs:
               }]
             }' | curl --fail-with-body -sS -X POST -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL" || echo "Webhook notification failed, not failing the run for it." >&2
           fi
+          gh pr merge "$number" --auto --merge
+      - name: Alert Teams on failure
+        if: failure()
+        env:
+          WEBHOOK_URL: ${{ secrets.RELEASE_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          jq -nc --arg text "Promotion PR job failed on a4i-website: $RUN_URL" '{
+            type: "message",
+            attachments: [{
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.5",
+                msteams: {width: "Full"},
+                body: [{type: "TextBlock", text: $text, wrap: true}]
+              }
+            }]
+          }' | curl --fail-with-body -sS -X POST -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
