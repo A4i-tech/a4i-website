@@ -104,7 +104,7 @@ jobs:
 
   back-sync:
     needs: tag-and-release
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Mint a scoped App token
