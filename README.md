@@ -29,3 +29,13 @@ The HTTrack/WordPress export reintroduces things Google Search Console flags as 
 - Internal links use directory URLs (`../about-us/`), not `../about-us/index.html`
 - `tag/*` and `category/*` archives are empty on this site — keep them `noindex, follow` and out of `sitemap.xml`
 - Moved pages (`news/`, `careers/ai-architect/`) are redirect stubs with an absolute canonical and `noindex` — don't list them in `sitemap.xml`
+
+## Other cleanup after a re-export
+
+The export also brings back WordPress leftovers. After every re-export:
+
+- Remove `<meta name="generator" ...>` from every page
+- Remove the "Hello world!" `wp-embedded-content` blockquote and iframe blocks in `category/uncategorized/`
+- Delete the empty `window.location.href` files the export creates inside page directories (find them with `find . -name 'window.location.href'`)
+- External `target="_blank"` links need `rel="noopener noreferrer"`, and links to LinkedIn use `https://`
+- Do **not** delete `wp-content/cache/wpo-minify/`: the pages load their CSS and JS from it
