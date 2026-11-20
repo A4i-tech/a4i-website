@@ -35,7 +35,7 @@ jobs:
       # GitHub Pages ignores .assetsignore, so drop the Worker source here to
       # keep it out of the published site (it deploys separately via wrangler).
       - name: Exclude Worker source and repo config from the Pages artifact
-        run: rm -rf workers wrangler.toml .gitleaks.toml README.md
+        run: rm -rf workers wrangler.toml .gitleaks.toml .assetsignore README.md
 
       - name: Setup Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
