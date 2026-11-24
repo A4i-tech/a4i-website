@@ -29,3 +29,13 @@ The HTTrack/WordPress export reintroduces things Google Search Console flags as 
 - Internal links use directory URLs (`../about-us/`), not `../about-us/index.html`
 - `tag/*` and `category/*` archives are empty on this site — keep them `noindex, follow` and out of `sitemap.xml`
 - Moved pages (`news/`, `careers/ai-architect/`) are redirect stubs with an absolute canonical and `noindex` — don't list them in `sitemap.xml`
+
+## CSP script hashes
+
+`_headers` carries a `Content-Security-Policy-Report-Only` whose `script-src` lists a SHA-256 hash for every inline `<script>` (including the import map and speculation rules). A hash only matches if the script text is identical, so after editing an inline script, or after any re-export, run:
+
+```
+node scripts/csp-hashes.mjs
+```
+
+and commit `_headers`. The `CSP hashes` workflow fails a PR if the list is stale (`--check`). `_headers` and `scripts/` are removed from the Pages artifact in `deploy.yml`.
