@@ -12,6 +12,8 @@
 const MAX = { fullname: 100, city: 100, organisation: 150, email: 254, message: 5000 };
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
 const MIN_RECAPTCHA_SCORE = 0.5;
+// Largest legitimate body is ~5 KB of message plus short fields; 16 KB leaves headroom.
+const MAX_BODY_BYTES = 16 * 1024;
 
 export default {
   async fetch(request, env, ctx) {
@@ -54,6 +56,9 @@ export default {
     try {
       body = await readBody(request);
     } catch (e) {
+      if (e instanceof BodyTooLarge) {
+        return json({ ok: false, error: 'Request too large' }, 413, cors);
+      }
       return json({ ok: false, error: 'Invalid request body' }, 400, cors);
     }
 
@@ -74,7 +79,7 @@ export default {
       console.error('RECAPTCHA_SECRET is not configured; rejecting submission');
       return json({ ok: false, error: 'This form is temporarily unavailable. Please email us at a4i@iiitb.ac.in.' }, 503, cors);
     }
-    const human = await verifyRecaptcha(env.RECAPTCHA_SECRET, clean(body.recaptcha_token), type, request);
+    const human = await verifyRecaptcha(env.RECAPTCHA_SECRET, clean(body.recaptcha_token), type, request, cors['Access-Control-Allow-Origin']);
     if (!human) {
       return json({ ok: false, error: 'Spam check failed. Please refresh the page and try again.' }, 400, cors);
     }
@@ -149,15 +154,46 @@ function json(payload, status, extra) {
   });
 }
 
+class BodyTooLarge extends Error {}
+
+// Read the body without ever buffering more than MAX_BODY_BYTES. Content-Length
+// is only a fast reject (it can be absent or wrong), so the stream is capped too.
+async function readCapped(request) {
+  const declared = Number(request.headers.get('Content-Length'));
+  if (declared > MAX_BODY_BYTES) throw new BodyTooLarge();
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BODY_BYTES) {
+      await reader.cancel();
+      throw new BodyTooLarge();
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    bytes.set(c, offset);
+    offset += c.byteLength;
+  }
+  return bytes;
+}
+
 async function readBody(request) {
   const type = request.headers.get('Content-Type') || '';
+  const bytes = await readCapped(request);
   if (type.includes('application/json')) {
-    const b = await request.json();
+    const b = JSON.parse(new TextDecoder().decode(bytes));
     // A body of literally `null` (or a string/number/array) is valid JSON but not a form.
     if (!b || typeof b !== 'object' || Array.isArray(b)) throw new Error('Invalid body');
     return b;
   }
-  const form = await request.formData();
+  const form = await new Response(bytes, { headers: { 'Content-Type': type } }).formData();
   const out = {};
   for (const [k, v] of form.entries()) if (typeof v === 'string') out[k] = v;
   return out;
@@ -197,7 +233,7 @@ function checkEmail(data, errors) {
   else if (data.email.length > MAX.email || !EMAIL_RE.test(data.email)) errors.email = 'Enter a valid email';
 }
 
-async function verifyRecaptcha(secret, token, action, request) {
+async function verifyRecaptcha(secret, token, action, request, origin) {
   if (!token) return false;
   const params = new URLSearchParams({ secret, response: token });
   const ip = request.headers.get('CF-Connecting-IP');
@@ -209,6 +245,9 @@ async function verifyRecaptcha(secret, token, action, request) {
     // The key is v3 only: a response without a score or action is not one we issued.
     if (typeof r.score !== 'number' || r.score < MIN_RECAPTCHA_SCORE) return false;
     if (r.action !== action) return false;
+    // The token must have been issued on the page the request came from, so a
+    // token minted on another site registered for this key can't be replayed.
+    if (!r.hostname || r.hostname !== new URL(origin).hostname) return false;
     return true;
   } catch (e) {
     console.error('reCAPTCHA verify failed', e);
