@@ -16,7 +16,11 @@ import { join, relative } from 'node:path';
 
 const SKIP_DIRS = new Set(['.git', '.github', 'node_modules', '.wrangler', 'workers', 'scripts']);
 const HEADERS_FILE = '_headers';
-const SCRIPT_SRC_RE = /script-src [^;]*;/;
+// The script-src policy lives on its own _headers line (the other directives are on a
+// second Content-Security-Policy-Report-Only line) so each line stays under Cloudflare's
+// 2,000 character per-line limit. This script owns the line that starts with script-src.
+const SCRIPT_LINE_RE = /^(\s*Content-Security-Policy-Report-Only: )script-src [^\r\n]*$/m;
+const MAX_LINE = 2000;
 // Hosts allowed to serve external scripts. Hashes are appended after these.
 const SCRIPT_HOSTS = [
   "'self'",
@@ -64,12 +68,20 @@ const hashes = collectHashes(root);
 const directive = 'script-src ' + [...SCRIPT_HOSTS, ...[...hashes.keys()].sort().map((h) => `'${h}'`)].join(' ') + ';';
 
 const current = readFileSync(HEADERS_FILE, 'utf8');
-if (!SCRIPT_SRC_RE.test(current)) {
-  console.error(`No script-src directive found in ${HEADERS_FILE}`);
+if (!SCRIPT_LINE_RE.test(current)) {
+  console.error(`No "Content-Security-Policy-Report-Only: script-src ..." line found in ${HEADERS_FILE}`);
   process.exit(2);
 }
 const eol = current.includes('\r\n') ? '\r\n' : '\n';
-const next = current.replace(SCRIPT_SRC_RE, () => directive);
+const next = current.replace(SCRIPT_LINE_RE, (_, prefix) => prefix + directive);
+
+// Cloudflare drops or rejects _headers lines over 2,000 characters, so fail loudly instead.
+const tooLong = next.split(/\r?\n/).map((l, i) => [i + 1, l.length]).filter(([, n]) => n > MAX_LINE);
+if (tooLong.length) {
+  for (const [line, n] of tooLong) console.error(`${HEADERS_FILE} line ${line} is ${n} characters (limit ${MAX_LINE}).`);
+  console.error('Too many inline scripts for one header line: set the CSP from a Worker instead.');
+  process.exit(2);
+}
 
 if (next === current) {
   console.log(`${HEADERS_FILE} is up to date (${hashes.size} inline script hashes).`);
