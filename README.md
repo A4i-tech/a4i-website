@@ -35,7 +35,7 @@ The HTTrack/WordPress export reintroduces things Google Search Console flags as 
 The export also brings back WordPress leftovers. After every re-export:
 
 - Remove `<meta name="generator" ...>` from every page
-- Remove the "Hello world!" `wp-embedded-content` blockquote and iframe blocks in `category/uncategorized/`
+- Remove the "Hello world!" card and the `wp-embedded-content` blockquote and iframe blocks in `category/uncategorized/`
 - Delete the empty `window.location.href` files the export creates inside page directories (find them with `find . -name 'window.location.href'`)
 - External `target="_blank"` links need `rel="noopener noreferrer"`, and links to LinkedIn use `https://`
 - Do **not** delete `wp-content/cache/wpo-minify/`: the pages load their CSS and JS from it
