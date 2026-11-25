@@ -1,0 +1,22 @@
+name: CSP hashes
+
+on:
+  pull_request:
+    branches: [a4i/staging, a4i/main]
+    paths:
+      - '**/*.html'
+      - '_headers'
+      - 'scripts/csp-hashes.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check _headers script-src matches the inline scripts
+        run: node scripts/csp-hashes.mjs --check
