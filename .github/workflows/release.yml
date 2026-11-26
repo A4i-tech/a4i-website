@@ -24,10 +24,18 @@ jobs:
           app-id: ${{ vars.PROMOTIONS_BOT_APP_ID }}
           private-key: ${{ secrets.PROMOTIONS_BOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+      - name: Mint a read-only App token for linked issues
+        id: read-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.PROMOTIONS_BOT_APP_ID }}
+          private-key: ${{ secrets.PROMOTIONS_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
           repositories: |
             ${{ github.event.repository.name }}
             .github
-          permission-contents: write
           permission-issues: read
           permission-pull-requests: read
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -51,29 +59,31 @@ jobs:
       - name: Create release (also creates the tag, so no orphaned tag on failure)
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          READ_TOKEN: ${{ steps.read-token.outputs.token }}
           TAG: ${{ steps.tag.outputs.tag }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
           SHA: ${{ github.sha }}
         run: |
+          set -o pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
             exit 0
           fi
           if git rev-parse -q --verify HEAD^2 >/dev/null; then
-            pr_numbers=$(git log --format=%s HEAD^1..HEAD^2 | sed -nE 's/^Merge pull request #([0-9]+) from .*|.*\(#([0-9]+)\)$/\1\2/p')
+            pr_numbers=$(git log --format=%s HEAD^1..HEAD | sed -nE 's/^Merge pull request #([0-9]+) from .*|.*\(#([0-9]+)\)$/\1\2/p')
           else
             pr_numbers=""
           fi
           issues=$(
             for pr in $pr_numbers; do
-              gh api graphql -F owner="$OWNER" -F repo="$REPO" -F number="$pr" -f query='
+              GH_TOKEN="$READ_TOKEN" gh api graphql -F owner="$OWNER" -F repo="$REPO" -F number="$pr" -f query='
                 query($owner: String!, $repo: String!, $number: Int!) {
                   repository(owner: $owner, name: $repo) {
                     pullRequest(number: $number) {
                       closingIssuesReferences(first: 10) { nodes { url } }
                     }
                   }
-                }' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[].url'
+                }' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[].url' || exit 1
             done | sort -u
           )
           if [ -z "$issues" ]; then
